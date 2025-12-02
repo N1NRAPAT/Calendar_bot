@@ -8,11 +8,11 @@ const config = {
 
 const app = express();
 app.use(express.json());
-app.use(middleware(config));
 
 const client = new Client(config);
 
-app.post("/line/webhook", async (req, res) => {
+// ONLY apply middleware to the webhook route
+app.post("/line/webhook", middleware(config), async (req, res) => {
   try {
     const events = req.body.events;
 
