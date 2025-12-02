@@ -18,18 +18,16 @@ app.post("/line/webhook", async (req, res) => {
 
     for (const event of events) {
       if (event.type === "message" && event.message.type === "text") {
-        const text = event.message.text;
-
         await client.replyMessage(event.replyToken, {
           type: "text",
-          text: "You said: " + text,
+          text: `You said: ${event.message.text}`,
         });
       }
     }
 
     res.status(200).send("OK");
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     res.status(500).end();
   }
 });
