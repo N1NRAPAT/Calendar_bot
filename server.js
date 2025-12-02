@@ -1,33 +1,39 @@
 import express from "express";
-import { Client } from "@line/bot-sdk";
-
-const app = express();
-app.use(express.json());
+import { Client, middleware } from "@line/bot-sdk";
 
 const config = {
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 
+const app = express();
+app.use(express.json());
+app.use(middleware(config));
+
 const client = new Client(config);
 
-app.post("/line/webhook", (req, res) => {
-  const events = req.body.events;
+app.post("/line/webhook", async (req, res) => {
+  try {
+    const events = req.body.events;
 
-  events.forEach((event) => {
-    if (event.type === "message") {
-      const text = event.message.text;
+    for (const event of events) {
+      if (event.type === "message" && event.message.type === "text") {
+        const text = event.message.text;
 
-      client.replyMessage(event.replyToken, {
-        type: "text",
-        text: "You said: " + text,
-      });
+        await client.replyMessage(event.replyToken, {
+          type: "text",
+          text: "You said: " + text,
+        });
+      }
     }
-  });
 
-  res.sendStatus(200);
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error(err);
+    res.status(500).end();
+  }
 });
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log("Server running");
+  console.log("Server running on port " + (process.env.PORT || 3000));
 });
